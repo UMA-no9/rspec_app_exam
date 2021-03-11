@@ -83,8 +83,6 @@ RSpec.describe 'Task', type: :system do
   end
 
   describe 'Task削除' do
-    let!(:task) { create(:task) }
-
     context '正常系' do
       it 'Taskが削除されること' do
         visit project_tasks_path(task.project)
