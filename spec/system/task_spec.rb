@@ -87,8 +87,7 @@ RSpec.describe 'Task', type: :system do
     context '正常系' do
       it 'Taskが削除されること' do
         visit project_tasks_path(task.project)
-        click_link 'Destroy'
-        page.driver.browser.switch_to.alert.accept
+        page.accept_confirm { click_link 'Destroy' }
         expect(".task_list").not_to have_content task.title
         expect { visit current_path }.to change { Task.count }.by (-1)
         expect(current_path).to eq project_tasks_path(task.project)
