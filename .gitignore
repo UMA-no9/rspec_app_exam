@@ -32,3 +32,6 @@
 
 # Ignore .idea files
 .idea
+
+# Ignore vendor/bundle
+/vendor/bundle
