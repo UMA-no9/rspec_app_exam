@@ -50,6 +50,8 @@ RSpec.describe 'Task', type: :system do
   end
 
   describe 'Task編集' do
+    let(:task_done) { create(:task, :done) }
+
     context '正常系' do
       it 'Taskを編集した場合、一覧画面で編集後の内容が表示されること' do
         visit edit_project_task_path(task.project, task)
@@ -69,14 +71,13 @@ RSpec.describe 'Task', type: :system do
         expect(current_path).to eq project_task_path(task.project, task)
       end
 
-      let!(:done_task) { create(:task, :done) }
       it '既にステータスが完了のタスクのステータスを変更した場合、Taskの完了日が更新されないこと' do
-        visit edit_project_task_path(done_task.project, done_task)
+        visit edit_project_task_path(task_done.project, task_done)
         select 'todo', from: 'Status'
         click_button 'Update Task'
         expect(page).to have_content('todo')
         expect(page).not_to have_content(Time.current.strftime('%Y-%m-%d'))
-        expect(current_path).to eq project_task_path(done_task.project, done_task)
+        expect(current_path).to eq project_task_path(task_done.project, task_done)
       end
     end
   end
