@@ -1,24 +1,25 @@
 require 'rails_helper'
 
 RSpec.describe 'Task', type: :system do
+  let(:project) { create(:project) }
   let(:task) { create(:task) }
 
   describe 'Task一覧' do
     context '正常系' do
       it '一覧ページにアクセスした場合、Taskが表示されること' do
-        visit project_tasks_path(task.project)
+        visit project_tasks_path(project)
         expect(page).to have_content task.title
         expect(Task.count).to eq 1
-        expect(current_path).to eq project_tasks_path(task.project)
+        expect(current_path).to eq project_tasks_path(project)
       end
 
       it 'Project詳細からTask一覧ページにアクセスした場合、Taskが表示されること' do
-        visit project_path(task.project)
+        visit project_path(project)
         within_window(window_opened_by { click_link 'View Todos' }) do
-          expect(current_path).to eq project_tasks_path(task.project)
+          expect(current_path).to eq project_tasks_path(project)
           expect(page).to have_content task.title
           expect(Task.count).to eq 1
-          expect(current_path).to eq project_tasks_path(task.project)
+          expect(current_path).to eq project_tasks_path(project)
         end
       end
     end
@@ -27,7 +28,7 @@ RSpec.describe 'Task', type: :system do
   describe 'Task新規作成' do
     context '正常系' do
       it 'Taskが新規作成されること' do
-        visit project_tasks_path(task.project)
+        visit project_tasks_path(project)
         click_link 'New Task'
         fill_in 'Title', with: 'test'
         expect { click_button 'Create Task' }.to change { Task.count }.by(1)
@@ -40,11 +41,11 @@ RSpec.describe 'Task', type: :system do
   describe 'Task詳細' do
     context '正常系' do
       it 'Taskが表示されること' do
-        visit project_task_path(task.project, task)
+        visit project_task_path(project, task)
         expect(page).to have_content(task.title)
         expect(page).to have_content(task.status)
         expect(page).to have_content(task.deadline.strftime('%Y-%m-%d %H:%M'))
-        expect(current_path).to eq project_task_path(task.project, task)
+        expect(current_path).to eq project_task_path(project, task)
       end
     end
   end
@@ -54,21 +55,21 @@ RSpec.describe 'Task', type: :system do
 
     context '正常系' do
       it 'Taskを編集した場合、一覧画面で編集後の内容が表示されること' do
-        visit edit_project_task_path(task.project, task)
+        visit edit_project_task_path(project, task)
         fill_in 'Deadline', with: task.deadline
         click_button 'Update Task'
         click_link 'Back'
         expect(find('.task_list')).to have_content(short_time(task.reload.deadline))
-        expect(current_path).to eq project_tasks_path(task.project)
+        expect(current_path).to eq project_tasks_path(project)
       end
 
       it 'ステータスを完了にした場合、Taskの完了日に今日の日付が登録されること' do
-        visit edit_project_task_path(task.project, task)
+        visit edit_project_task_path(project, task)
         select 'done', from: 'Status'
         click_button 'Update Task'
         expect(page).to have_content('done')
         expect(page).to have_content(Time.current.strftime('%Y-%m-%d'))
-        expect(current_path).to eq project_task_path(task.project, task)
+        expect(current_path).to eq project_task_path(project, task)
       end
 
       it '既にステータスが完了のタスクのステータスを変更した場合、Taskの完了日が更新されないこと' do
@@ -85,11 +86,11 @@ RSpec.describe 'Task', type: :system do
   describe 'Task削除' do
     context '正常系' do
       it 'Taskが削除されること' do
-        visit project_tasks_path(task.project)
+        visit project_tasks_path(project)
         page.accept_confirm { click_link 'Destroy' }
         expect(".task_list").not_to have_content task.title
         expect { visit current_path }.to change { Task.count }.by (-1)
-        expect(current_path).to eq project_tasks_path(task.project)
+        expect(current_path).to eq project_tasks_path(project)
       end
     end
   end
