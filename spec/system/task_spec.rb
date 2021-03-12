@@ -33,7 +33,7 @@ RSpec.describe 'Task', type: :system do
         fill_in 'Title', with: 'test'
         expect { click_button 'Create Task' }.to change { Task.count }.by(1)
         expect(page).to have_content('Task was successfully created.')
-        expect(current_path).to eq "/projects/1/tasks/#{task.id + 1}"
+        expect(current_path).to eq "/projects/1/tasks/1"
       end
     end
   end
@@ -84,6 +84,8 @@ RSpec.describe 'Task', type: :system do
   end
 
   describe 'Task削除' do
+    let!(:task) { create(:task) }
+
     context '正常系' do
       it 'Taskが削除されること' do
         visit project_tasks_path(project)
