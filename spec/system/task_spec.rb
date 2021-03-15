@@ -31,10 +31,9 @@ RSpec.describe 'Task', type: :system do
         visit project_tasks_path(project)
         click_link 'New Task'
         fill_in 'Title', with: 'test'
-        click_button 'Create Task'
+        expect { click_button 'Create Task' }.to change { Task.count }.by(1)
         expect(page).to have_content('Task was successfully created.')
-        expect(Task.count).to eq 1
-        expect(current_path).to eq '/projects/1/tasks/1'
+        expect(current_path).to eq "/projects/1/tasks/1"
       end
     end
   end
@@ -52,13 +51,15 @@ RSpec.describe 'Task', type: :system do
   end
 
   describe 'Task編集' do
+    let(:task_done) { create(:task, :done) }
+
     context '正常系' do
       it 'Taskを編集した場合、一覧画面で編集後の内容が表示されること' do
         visit edit_project_task_path(project, task)
-        fill_in 'Deadline', with: Time.current
+        fill_in 'Deadline', with: task.deadline
         click_button 'Update Task'
         click_link 'Back'
-        expect(find('.task_list')).to have_content(Time.current.strftime('%-m/%d %-H:%M'))
+        expect(find('.task_list')).to have_content(short_time(task.reload.deadline))
         expect(current_path).to eq project_tasks_path(project)
       end
 
@@ -72,13 +73,12 @@ RSpec.describe 'Task', type: :system do
       end
 
       it '既にステータスが完了のタスクのステータスを変更した場合、Taskの完了日が更新されないこと' do
-        task = create(:task, :done)
-        visit edit_project_task_path(project, task)
+        visit edit_project_task_path(task_done.project, task_done)
         select 'todo', from: 'Status'
         click_button 'Update Task'
         expect(page).to have_content('todo')
         expect(page).not_to have_content(Time.current.strftime('%Y-%m-%d'))
-        expect(current_path).to eq project_task_path(project, task)
+        expect(current_path).to eq project_task_path(task_done.project, task_done)
       end
     end
   end
@@ -89,11 +89,9 @@ RSpec.describe 'Task', type: :system do
     context '正常系' do
       it 'Taskが削除されること' do
         visit project_tasks_path(project)
-        click_link 'Destroy'
-        page.driver.browser.switch_to.alert.accept
+        page.accept_confirm { click_link 'Destroy' }
         expect(".task_list").not_to have_content task.title
-        visit current_path
-        expect(Task.count).to eq 0
+        expect { visit current_path }.to change { Task.count }.by (-1)
         expect(current_path).to eq project_tasks_path(project)
       end
     end
